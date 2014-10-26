@@ -14,6 +14,7 @@ minecraft_save_dir = "."
 # minecraft_save_dir = "/Users/[me]/Library/Application Support/minecraft/saves/"
 # On Linux:
 # minecraft_save_dir  = "/home/[me]/.minecraft/saves/"
+#test
 
 map_type = None
 if len(sys.argv) > 1:
