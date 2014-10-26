@@ -16,7 +16,7 @@ minecraft_save_dir = "."
 # minecraft_save_dir  = "/home/[me]/.minecraft/saves/"
 #test
 
-map_type = None
+map_type = 'map'
 if len(sys.argv) > 1:
     map_type = sys.argv[1]
     if map_type == 'game':
@@ -146,7 +146,7 @@ def setspawnandsave(world, point):
 
     Taken from TopoMC and tweaked to set biome.
     """
-    world.GameType = game_mode
+    world.GameType = 1
     spawn = point
     spawn[1] += 2
     world.setPlayerPosition(tuple(point))
