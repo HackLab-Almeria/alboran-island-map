@@ -9,14 +9,32 @@ import random
 
 from tree import Tree, treeObjs
 
-minecraft_save_dir = "."
-# On Mac OS X:
-# minecraft_save_dir = "/Users/[me]/Library/Application Support/minecraft/saves/"
-# On Linux:
-# minecraft_save_dir  = "/home/[me]/.minecraft/saves/"
-#test
+#### user input // settings ####
 
+# path where MC world is saved to
+minecraft_save_dir = "."
+
+# minecraft game mode: 'game' = Survival mode, 'game' = Creative mode
 map_type = 'map'
+
+# Set these values to only render part of the map, either by
+# offsetting the origin or displaying a smaller size.
+x_offset = 0
+truncate_size = 0
+
+elevation_min = 255
+elevation_max = 0
+
+# Fun fact: the Fort Washington map is 1.27 miles high and 818 pixels
+# high, so our scale is 2.49 meters per pixel. Range on the map is
+# from 0 feet (sea level) to 180 feet, or 60 blocks.
+voxel_min = 0
+voxel_max = 60.0
+
+y_min = 12
+
+
+#### main ####
 if len(sys.argv) > 1:
     map_type = sys.argv[1]
     if map_type == 'game':
@@ -38,14 +56,14 @@ else:
 # R-values from the texture TIFF are converted to blocks of the given
 # blockID, blockData, depth.
 block_id_lookup = {
-    0 : (m.Grass.ID, None, 2),
+    38 : (m.Grass.ID, None, 2),
     10 : (m.Dirt.ID, 1, 1), # blockData 1 == grass can't spread
-    20 : (m.Grass.ID, None, 2),
-    30 : (m.Cobblestone.ID, None, 1),
-    40 : (m.StoneBricks.ID, None, 3),
-    200 : (m.Water.ID, 0, 2), # blockData 0 == normal state of water
-    210 : (m.WaterActive.ID, 0, 1),
-    220 : (m.Water.ID, 0, 1),
+    125 : (m.Grass.ID, None, 2),
+    128 : (m.Cobblestone.ID, None, 1),
+    64 : (m.StoneBricks.ID, None, 3),
+    0 : (m.Water.ID, 0, 2), # blockData 0 == normal state of water
+    220 : (m.WaterActive.ID, 0, 1),
+    210 : (m.Water.ID, 0, 1),
 }
 
 plant_chance = {
@@ -88,22 +106,6 @@ def random_material():
     if not isinstance(choice, int):
         choice = choice.ID
     return choice
-
-# Set these values to only render part of the map, either by
-# offsetting the origin or displaying a smaller size.
-x_offset = 0
-truncate_size = 0
-
-elevation_min = 255
-elevation_max = 0
-
-# Fun fact: the Fort Washington map is 1.27 miles high and 818 pixels
-# high, so our scale is 2.49 meters per pixel. Range on the map is
-# from 0 feet (sea level) to 180 feet, or 60 blocks.
-voxel_min = 0
-voxel_max = 60.0
-
-y_min = 12
 
 print "Loading bitmaps for %s" % filename_prefix
 data = dict(elevation=[], features=[])
@@ -231,8 +233,14 @@ print "Populating chunks."
 for x, row in enumerate(elevation):
     for z, y in enumerate(row):
         block_id, ignore = material[x][z]
-
-        block_id, block_data, depth = block_id_lookup[block_id]
+        
+        # check if R value exists in lookup table; 
+        # else use block_id = 38 (m.Grass.ID)
+        if block_id in (64, 38, 129, 0):
+            block_id, block_data, depth = block_id_lookup[block_id]
+        else:
+            block_id, block_data, depth = block_id_lookup[38]
+        
         y = int(y * scale_factor)
         actual_y = y + y_min
         if actual_y > peak[1] or (peak[1] == 255 and y != 0):
@@ -331,4 +339,3 @@ for x, row in enumerate(elevation):
 # chestTag["Items"] = nbt.TAG_List(inventory)
 
 setspawnandsave(world, peak)
-
