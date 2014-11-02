@@ -14,8 +14,12 @@ from tree import Tree, treeObjs
 # path where MC world is saved to
 minecraft_save_dir = "."
 
-# minecraft game mode: 'game' = Survival mode, 'game' = Creative mode
+# minecraft game mode: 'game' = Survival mode, 'map' = Creative mode
 map_type = 'map'
+
+# files
+filename_prefix = 'map'
+
 
 # Set these values to only render part of the map, either by
 # offsetting the origin or displaying a smaller size.
@@ -33,25 +37,19 @@ voxel_max = 60.0
 
 y_min = 12
 
+print(sys.argv)
 
 #### main ####
-if len(sys.argv) > 1:
-    map_type = sys.argv[1]
-    if map_type == 'game':
-        game_mode = 0 # Survival
-    else:
-        game_mode = 1 # Creative
+if map_type == 'game':
+    game_mode = 0 # Survival
+if map_type == 'map':
+    game_mode = 1 # Creative
 
 if map_type not in ('map', 'game'):
     print "Usage: %s [game|map] (map prefix)" % sys.argv[0]
     print " 'game' turns the map into a playable survival game."
     print " 'map' just renders the map."
     sys.exit()
-
-if len(sys.argv) > 2:
-    filename_prefix = sys.argv[1]
-else:
-    filename_prefix = "fort-washington"
 
 # R-values from the texture TIFF are converted to blocks of the given
 # blockID, blockData, depth.
@@ -110,7 +108,7 @@ def random_material():
 print "Loading bitmaps for %s" % filename_prefix
 data = dict(elevation=[], features=[])
 for t in 'elevation', 'features':
-    filename = filename_prefix + "-" + t + ".tif"
+    filename = "../img/" + filename_prefix + "-" + t + ".tif"
     if not os.path.exists(filename):
         print "Could not load image file %s!" % filename
         sys.exit()
