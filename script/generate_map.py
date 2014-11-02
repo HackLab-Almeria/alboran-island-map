@@ -12,7 +12,7 @@ from tree import Tree, treeObjs
 #### user input // settings ####
 
 # path where MC world is saved to
-minecraft_save_dir = "."
+minecraft_save_dir = "./maps/"
 
 # minecraft game mode: 'game' = Survival mode, 'map' = Creative mode
 map_type = 'map'
