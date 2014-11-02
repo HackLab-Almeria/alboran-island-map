@@ -18,7 +18,9 @@ minecraft_save_dir = "./maps/"
 map_type = 'map'
 
 # files
-filename_prefix = 'map'
+folder = "../img/"
+file_elevation = "map-elevation.tif"
+file_features = "map-features.tif"
 
 
 # Set these values to only render part of the map, either by
@@ -105,10 +107,13 @@ def random_material():
         choice = choice.ID
     return choice
 
-print "Loading bitmaps for %s" % filename_prefix
+print "Loading bitmaps"
 data = dict(elevation=[], features=[])
 for t in 'elevation', 'features':
-    filename = "../img/" + filename_prefix + "-" + t + ".tif"
+    if t == 'elevation':
+        filename = folder + file_elevation
+    if t == 'features':
+        filename = folder + file_features
     if not os.path.exists(filename):
         print "Could not load image file %s!" % filename
         sys.exit()
@@ -175,7 +180,7 @@ i = 0
 worlddir = None
 while not worlddir or os.path.exists(worlddir):
     i += 1
-    name = filename_prefix + " " + map_type + " " + str(i)
+    name = "world" + " " + map_type + " " + str(i)
     worlddir = os.path.join(minecraft_save_dir, name)
 
 print "Creating world %s" % worlddir
