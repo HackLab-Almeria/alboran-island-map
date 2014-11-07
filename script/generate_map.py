@@ -19,8 +19,8 @@ map_type = 'map'
 
 # files
 folder = "../img/"
-file_elevation = "elevation.tif"
-file_features = "features.tif"
+file_elevation = "map-elevation.tif"
+file_features = "map-features.tif"
 
 
 # Set these values to only render part of the map, either by
@@ -56,18 +56,14 @@ if map_type not in ('map', 'game'):
 # R-values from the texture TIFF are converted to blocks of the given
 # blockID, blockData, depth.
 block_id_lookup = {
-    35 : (m.Grass.ID, None, 2),
-    158 : (m.Dirt.ID, 1, 1), # blockData 1 == grass can't spread
-    136 : (m.Grass.ID, None, 2),
-    220 : (m.Cobblestone.ID, None, 1),
-    255 : (m.StoneBricks.ID, None, 3),
-    151 : (m.WoodPlanks.ID, None, 2),
-    33  : (m.Obsidian.ID, None, 2),
-    193 : (m.Gravel.ID, None, 2),
-#    0   : (m.Water.ID, 0, 2), # blockData 0 == normal state of water
-#    220 : (m.WaterActive.ID, 0, 1),
-#    210 : (m.Water.ID, 0, 1),
-    
+    38 : (m.Grass.ID, None, 2),
+    10 : (m.Dirt.ID, 1, 1), # blockData 1 == grass can't spread
+    125 : (m.Grass.ID, None, 2),
+    128 : (m.Cobblestone.ID, None, 1),
+    64 : (m.StoneBricks.ID, None, 3),
+    0 : (m.Water.ID, 0, 2), # blockData 0 == normal state of water
+    220 : (m.WaterActive.ID, 0, 1),
+    210 : (m.Water.ID, 0, 1),
 }
 
 plant_chance = {
@@ -243,14 +239,10 @@ for x, row in enumerate(elevation):
         
         # check if R value exists in lookup table; 
         # else use block_id = 38 (m.Grass.ID)
-        try:
+        if block_id in (64, 38, 129, 0):
             block_id, block_data, depth = block_id_lookup[block_id]
-        except KeyError, e:
-            block_id, block_data, depth = block_id_lookup[35]
-            print "mit Gras ersetzt."
         else:
-            # Im try-Block sind keine Fehler aufgetreten
-            print "OK"
+            block_id, block_data, depth = block_id_lookup[38]
         
         y = int(y * scale_factor)
         actual_y = y + y_min
