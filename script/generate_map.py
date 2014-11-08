@@ -13,7 +13,7 @@ from tree import Tree, treeObjs
 #### user input // settings ####
 
 # path where MC world is saved to
-minecraft_save_dir = "./maps/"
+minecraft_save_dir = "C:\Users\Alecks\Desktop\server\world"
 
 # minecraft game mode: 'game' = Survival mode, 'map' = Creative mode
 map_type = 'map'
@@ -183,10 +183,10 @@ def setspawnandsave(world, point):
 # Where does the world file go?
 i = 0
 worlddir = None
-while not worlddir or os.path.exists(worlddir):
-    i += 1
-    name = "world" + " " + map_type + " " + str(i)
-    worlddir = os.path.join(minecraft_save_dir, name)
+#while not worlddir or os.path.exists(worlddir):
+    #i += 1
+    #name = "world" + " " + map_type + " " + str(i)
+worlddir = os.path.join(minecraft_save_dir)
 
 print "Creating world %s" % worlddir
 world = mclevel.MCInfdevOldLevel(worlddir, create=True)
