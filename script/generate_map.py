@@ -1,6 +1,7 @@
 # generate overall world
 import os
 import sys
+import numpy as np
 from PIL import Image
 from pymclevel import mclevel, box, materials, nbt
 from pymclevel.materials import alphaMaterials as m
@@ -241,6 +242,26 @@ for x, row in enumerate(elevation):
         # else use block_id = 38 (m.Grass.ID)
         if block_id in (64, 38, 129, 0):
             block_id, block_data, depth = block_id_lookup[block_id]
+<<<<<<< HEAD
+=======
+        except KeyError, e:
+            diff = block_id_lookup.keys()
+            keys = block_id_lookup.keys()
+
+            diff = np.asarray(diff)
+            diff = abs(diff-block_id)
+
+
+            minval = min(diff)
+
+            for index in range(0, len(diff)):
+                if diff[index] == minval:
+                    block_id = keys[index]
+                    break
+            block_id, block_data, depth = block_id_lookup[block_id]
+                
+            print "habe nearest neighbour benutzt"
+>>>>>>> 4bf24dcac6041dc8b125ac374c807a919295aeea
         else:
             block_id, block_data, depth = block_id_lookup[38]
         
