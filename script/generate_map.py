@@ -56,14 +56,14 @@ if map_type not in ('map', 'game'):
 
 
 block_rgb_lookup = {
-    "Grass" : (35, 217, 72, 255),
-    "Grass" : (158, 134, 26, 255),
-    "Dirt" : (136, 40, 84, 255),
-    "Cobblestone" : (220, 87, 237, 255),
-    "StoneBricks" : (255, 255, 255, 255),
-    "WoodPlanks" : (151, 110, 84, 255),
-    "Obsidian" : (0, 0, 0, 255),
-    "Gravel" : (193, 60, 151, 255),
+    "Grass" : (35, 217, 72),
+    "Grass" : (158, 134, 26),
+    "Dirt" : (136, 40, 84),
+    "Cobblestone" : (220, 87, 237),
+    "StoneBricks" : (255, 255, 255),
+    "WoodPlanks" : (151, 110, 84),
+    "Obsidian" : (0, 0, 0),
+    "Gravel" : (193, 60, 151),
 }
 rgb_values = block_rgb_lookup.values()
 
@@ -140,6 +140,9 @@ for t in 'elevation', 'features':
         row = []
         for j in range(max(height, truncate_size)):
             pixel = img.getpixel((i,j))
+
+            if len(pixel) == 4:
+                pixel = pixel[:3]
 
             if t == 'features':
                 if pixel not in rgb_values:
