@@ -263,11 +263,12 @@ for x, row in enumerate(elevation):
                     break
             block_id, block_data, depth = block_id_lookup[block_id]
                 
-            print "habe nearest neighbour benutzt"
+            # print "habe nearest neighbour benutzt"
 
         else:
             # Im try-Block sind keine Fehler aufgetreten
-            print "OK"
+            1
+            # print "OK"
         
         y = int(y * scale_factor)
         actual_y = y + y_min
