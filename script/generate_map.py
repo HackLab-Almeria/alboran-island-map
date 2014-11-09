@@ -246,8 +246,7 @@ for x, row in enumerate(elevation):
         # else use block_id = 38 (m.Grass.ID)
         try:
             block_id, block_data, depth = block_id_lookup[block_id]
-<<<<<<< HEAD
-=======
+
         except KeyError, e:
             diff = block_id_lookup.keys()
             keys = block_id_lookup.keys()
@@ -265,7 +264,7 @@ for x, row in enumerate(elevation):
             block_id, block_data, depth = block_id_lookup[block_id]
                 
             print "habe nearest neighbour benutzt"
->>>>>>> 4bf24dcac6041dc8b125ac374c807a919295aeea
+
         else:
             # Im try-Block sind keine Fehler aufgetreten
             print "OK"
