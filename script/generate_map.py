@@ -13,7 +13,7 @@ from tree import Tree, treeObjs
 #### user input // settings ####
 
 # path where MC world is saved to
-minecraft_save_dir = "./maps/"
+minecraft_save_dir = "C:/Users/Christoph/AppData/Roaming/.minecraft/saves"
 
 # minecraft game mode: 'game' = Survival mode, 'map' = Creative mode
 map_type = 'map'
@@ -21,7 +21,7 @@ map_type = 'map'
 # files
 folder = "../img/"
 file_elevation = "elevation.tif"
-file_features = "features.tif"
+file_features = "feature.tif"
 
 
 # Set these values to only render part of the map, either by
