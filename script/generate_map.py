@@ -20,8 +20,8 @@ map_type = 'map'
 
 # files
 folder = "../img/"
-file_elevation = "elevation.tif"
-file_features = "feature.tif"
+file_elevation = "elevation_small.tif"
+file_features = "feature_small.tif"
 
 
 # Set these values to only render part of the map, either by
@@ -54,6 +54,19 @@ if map_type not in ('map', 'game'):
     print " 'map' just renders the map."
     sys.exit()
 
+
+block_rgb_lookup = {
+    "Grass" : (35, 217, 72, 255),
+    "Grass" : (158, 134, 26, 255),
+    "Dirt" : (136, 40, 84, 255),
+    "Cobblestone" : (220, 87, 237, 255),
+    "StoneBricks" : (255, 255, 255, 255),
+    "WoodPlanks" : (151, 110, 84, 255),
+    "Obsidian" : (0, 0, 0, 255),
+    "Gravel" : (193, 60, 151, 255),
+}
+rgb_values = block_rgb_lookup.values()
+
 # R-values from the texture TIFF are converted to blocks of the given
 # blockID, blockData, depth.
 block_id_lookup = {
@@ -68,7 +81,6 @@ block_id_lookup = {
 #    0   : (m.Water.ID, 0, 2), # blockData 0 == normal state of water
 #    220 : (m.WaterActive.ID, 0, 1),
 #    210 : (m.Water.ID, 0, 1),
-    
 }
 
 plant_chance = {
@@ -128,7 +140,26 @@ for t in 'elevation', 'features':
         row = []
         for j in range(max(height, truncate_size)):
             pixel = img.getpixel((i,j))
+
+            if t == 'features':
+                if pixel not in rgb_values:
+                    # calculate the difference of the pixel to each key
+                    diff = []
+                    for i in range(0, len(rgb_values)):
+                        d = np.subtract(rgb_values[i], pixel)
+                        sum = abs(np.sum(d[0:]))
+                        diff.append(sum)
+                    # determine the lowest residual value
+                    minval = min(diff)
+                    # get index of the diff array and set new pixel value
+                    for index in range(0, len(diff)):
+                        if diff[index] == minval:
+                            pixel = rgb_values[index]
+                            print("new pixel:", pixel)
+                            break
+
             value = pixel[0]
+
             if t == 'features':
                 value = (value, pixel[1]) # block ID, block data
             if t == 'elevation':
@@ -241,7 +272,7 @@ print "Populating chunks."
 for x, row in enumerate(elevation):
     for z, y in enumerate(row):
         block_id, ignore = material[x][z]
-        
+
         # check if R value exists in lookup table; 
         # else use block_id = 38 (m.Grass.ID)
         try:
