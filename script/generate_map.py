@@ -13,7 +13,10 @@ from tree import Tree, treeObjs
 #### user input // settings ####
 
 # path where MC world is saved to
-minecraft_save_dir = "C:/Users/Christoph/AppData/Roaming/.minecraft/saves"
+work_dir = os.getcwd()[:-6]
+print work_dir
+
+minecraft_save_dir = work_dir+"\\worlds"
 
 # minecraft game mode: 'game' = Survival mode, 'map' = Creative mode
 map_type = 'map'
@@ -76,7 +79,7 @@ block_id_lookup = {
     220 : (m.Cobblestone.ID, None, 1),
     255 : (m.StoneBricks.ID, None, 3),
     151 : (m.WoodPlanks.ID, None, 2),
-    33  : (m.Obsidian.ID, None, 2),
+    0  : (m.Obsidian.ID, None, 2),
     193 : (m.Gravel.ID, None, 2),
 #    0   : (m.Water.ID, 0, 2), # blockData 0 == normal state of water
 #    220 : (m.WaterActive.ID, 0, 1),
@@ -139,17 +142,18 @@ for t in 'elevation', 'features':
     for i in range(max(width, truncate_size)):
         row = []
         for j in range(max(height, truncate_size)):
-            pixel = img.getpixel((i,j))
+            pixel = img.getpixel((i, j))
 
             if len(pixel) == 4:
                 pixel = pixel[:3]
+
 
             if t == 'features':
                 if pixel not in rgb_values:
                     # calculate the difference of the pixel to each key
                     diff = []
-                    for i in range(0, len(rgb_values)):
-                        d = np.subtract(rgb_values[i], pixel)
+                    for c in range(0, len(rgb_values)):
+                        d = np.subtract(rgb_values[c], pixel)
                         sum = abs(np.sum(d[0:]))
                         diff.append(sum)
                     # determine the lowest residual value
@@ -158,7 +162,7 @@ for t in 'elevation', 'features':
                     for index in range(0, len(diff)):
                         if diff[index] == minval:
                             pixel = rgb_values[index]
-                            print("new pixel:", pixel)
+
                             break
 
             value = pixel[0]
@@ -171,7 +175,7 @@ for t in 'elevation', 'features':
             row.append(value)
         data[t].append(row)
 
-elevation= data['elevation']
+elevation = data['elevation']
 material = data['features']
 
 if truncate_size:
@@ -268,7 +272,7 @@ upper_right = (len(elevation), 255, len(elevation[0]))
 print "Carving out air layer. %r %r" % (bottom_left, upper_right)
 tilebox = box.BoundingBox(bottom_left, upper_right)
 world.fillBlocks(tilebox, m.Air, [wall_material])
-   
+
 max_height = (world.Height-elevation_min) * scale_factor
 
 print "Populating chunks."
@@ -276,7 +280,7 @@ for x, row in enumerate(elevation):
     for z, y in enumerate(row):
         block_id, ignore = material[x][z]
 
-        # check if R value exists in lookup table; 
+        # check if R value exists in lookup table;
         # else use block_id = 38 (m.Grass.ID)
         try:
             block_id, block_data, depth = block_id_lookup[block_id]
@@ -296,14 +300,15 @@ for x, row in enumerate(elevation):
                     block_id = keys[index]
                     break
             block_id, block_data, depth = block_id_lookup[block_id]
-                
+
             # print "habe nearest neighbour benutzt"
 
         else:
             # Im try-Block sind keine Fehler aufgetreten
             1
             # print "OK"
-        
+
+
         y = int(y * scale_factor)
         actual_y = y + y_min
         if actual_y > peak[1] or (peak[1] == 255 and y != 0):
@@ -388,7 +393,7 @@ for x, row in enumerate(elevation):
 
 # print "Chest at %s,%s,%s" % (chest_x, chest_y, chest_z)
 # inventory = []
-# starting_chest_contents = [(m.SugarCane, 6), (m.Pumpkin, 1), 
+# starting_chest_contents = [(m.SugarCane, 6), (m.Pumpkin, 1),
 #                            (m.Watermelon, 1), (m.Cactus, 3)]
 # for i, (block, quantity) in enumerate(starting_chest_contents):
 #     slot = i
