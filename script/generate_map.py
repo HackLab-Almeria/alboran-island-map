@@ -14,9 +14,9 @@ from tree import Tree, treeObjs
 
 # path where MC world is saved to
 work_dir = os.getcwd()[:-6]
-print work_dir
+print "Working directory: %s" % work_dir
 
-minecraft_save_dir = work_dir+"\\worlds"
+minecraft_save_dir = work_dir+"worlds"
 
 # minecraft game mode: 'game' = Survival mode, 'map' = Creative mode
 map_type = 'map'
@@ -227,6 +227,8 @@ while not worlddir or os.path.exists(worlddir):
     worlddir = os.path.join(minecraft_save_dir, name)
 
 print "Creating world %s" % worlddir
+if not os.path.exists(worlddir):
+    os.makedirs(worlddir)
 world = mclevel.MCInfdevOldLevel(worlddir, create=True)
 from pymclevel.nbt import TAG_Int, TAG_String, TAG_Byte_Array
 tags = [TAG_Int(0, "MapFeatures"),
