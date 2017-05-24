@@ -29,7 +29,7 @@ MAP_file = sys.argv[2]
 
 ds = gdal.Open(DEM_file)
 geotransform = ds.GetGeoTransform()
-WIDTH = ds.RasterXSize * abs(geotransform[1])
-HEIGHT = ds.RasterYSize * abs(geotransform[5])
+WIDTH = ds.RasterXSize * int(abs(geotransform[1]))
+HEIGHT = ds.RasterYSize * int(abs(geotransform[5]))
 ds = gdal.Translate(MAP_file, ds, format="PNG", outputType = gdal.GDT_Byte, width=WIDTH, height=HEIGHT)
 ds = None
