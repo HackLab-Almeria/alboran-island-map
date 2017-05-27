@@ -12,8 +12,8 @@ import sqlite3
 import numpy as np
 
 blocks = {
-    '0,0,0' : 'default:stone',
-    '255,255,255' 'default:dirt':  
+    '0,0,0' : 'default:stone',
+    '255,255,255' : 'default:dirt' 
 }
 
 def Usage():
@@ -21,11 +21,14 @@ def Usage():
     sys.exit(1)
 
 def getBlockAsInteger(i, j, k):
-    return i+4096*(j+4096*k)
+    return k*16777216 + j*4096 + i
 
 def getBlock(r, g, b):
     rgb = '{0},{1},{2}'.format(r, g, b)
-    return blocks.rgb
+    try:
+        return blocks[rgb]
+    except:
+        return blocks['0,0,0']
 
 def createBlob(block):
     return '25,9,2,2,120,156,237,193,49,1,0,0,0,194,160,245,79,109,12,31,160,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,128,183,1,64,0,0,1,120,156,99,0,0,0,1,0,1,0,0,0,255,255,255,255,0,0,1,0,0,0,6,105,103,110,111,114,101,10,0,0'
@@ -86,17 +89,6 @@ except RuntimeError, e:
     print 'Features image is not RGB encoded'
     sys.exit(1)
 
-if not os.path.exists(worlddir):
-    worlddir = os.path.join(minecraft_save_dir, 'cazcalandia')
-
-world = mclevel.MCInfdevOldLevel(worlddir, create=True)
-from pymclevel.nbt import TAG_Int, TAG_String, TAG_Byte_Array
-tags = [TAG_Int(0, "MapFeatures"),
-        TAG_String("flat", "generatorName"),
-        TAG_String("0", "generatorOptions")]
-for tag in tags:
-    world.root_tag['Data'].add(tag)
-
 #for i in range(0, len(dem_values)):
 #    for j in range(0, len(dem_values[i])):
 #        print a
@@ -113,7 +105,7 @@ if not os.path.exists("./minetest" + "/worldmods"):
 if not os.path.exists("./minetest" + "/worldmods/mcimport"):
     os.makedirs("./minetest"+"/worldmods/mcimport")
 if not os.path.exists("./minetest"+"/worldmods/mcimport/init.lua"):
-    with open(sys.argv[2]+"/worldmods/mcimport/init.lua", "w") as sn:
+    with open("./minetest/worldmods/mcimport/init.lua", "w+") as sn:
         sn.write("-- map conversion requires a special water level\n")
         sn.write("minetest.set_mapgen_params({water_level = -2})\n\n")
         sn.write("-- prevent overgeneration in incomplete chunks, and allow lbms to work\n")
@@ -130,20 +122,22 @@ if not os.path.exists("./minetest"+"/worldmods/mcimport/init.lua"):
         sn.write("end)\n\n")
 
 mt_blocks = []
+int_blocks = []
 for i in range(0, len(dem_values)):
     for j in range(0, len(dem_values[i])):
-       mt_blocks.add(getBlock(features_r[i][j], features_g[i][j], features_b[i][j]))
+       mt_blocks.append(getBlock(features_r[i][j], features_g[i][j], features_b[i][j]))
+       int_blocks.append(getBlockAsInteger(i,j,dem_values[i][j]))
 
-conn = sqlite3.connect(os.path.join(self.world_path, "map.sqlite"))
+conn = sqlite3.connect(os.path.join("./minetest/map.sqlite"))
 cur = conn.cursor()
 
 cur.execute("CREATE TABLE IF NOT EXISTS `blocks` (\
             `pos` INT NOT NULL PRIMARY KEY, `data` BLOB);")
 
-for block in mt_blocks:
+for i in range(0, len(mt_blocks)):
     cur.execute("INSERT INTO blocks VALUES (?,?)",
-                        (getBlockAsInteger((i,j,dem_values[i][j])),
-                        createBlob(block)))
-
+                        (int_blocks[i],
+                        createBlob(mt_blocks[i])))
+                    
 conn.commit()
 conn.close()
