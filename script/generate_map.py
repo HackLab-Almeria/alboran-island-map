@@ -1,14 +1,47 @@
+# -*- coding: utf-8 -*-
 # generate overall world
 import os
 import sys
 import numpy as np
-from PIL import Image
 from pymclevel import mclevel, box, materials, nbt
 from pymclevel.materials import alphaMaterials as m
 
 import random
 
+from osgeo import gdal
+gdal.UseExceptions()
+
+## a esto habrá que darle cariño en algún momento
 from tree import Tree, treeObjs
+
+# We set the script data dictionary for manipulating raster maps with GDAL
+# we set to 1 as default since multiplication has no effect if not changed.
+DEM_ds  =   ""          # DEM map gdal datastore
+FEATURES_ds = ""        # features map gdal datastore
+DEM_heigth = 1          # map heigth, DEM_ds.RasterYSize
+DEM_width = 1           # map width, DEM_ds.RasterXSize
+DEM_XpixelSize = 1          # pixel X resolution on DEM map
+DEM_YpixelSize = 1          # pixel Y resolution on DEM map
+DEM_AltitudeResolution = 1  # Not used, not sure if available from DEM's
+DEM_Horizontal_scale = 1    # Not used, not sure if available from DEM's
+DEM_Vertical_scale = 1      #  DEMband.GetScale()
+DEM_height = 1          # map height
+DEM_width = 1           # map width
+DEM_Altitude = 1        # altitude_max - altitude_min + extra_space
+
+# user parameters, to be coded if we wish to parametrize more
+USER_Horizontal_scale = 1   # Not used yet
+USER_Vertical_scale = 1     # Not used yet
+USER_height = 1             # Not used yet
+USER_width = 1              # Not used yet
+USER_Altitude = 1           # Not used yet
+
+def Usage():
+    print("""
+    $ generate_map.py DEM_map features_map
+    """)
+    sys.exit(1)
+
 
 #### user input // settings ####
 
@@ -16,51 +49,36 @@ from tree import Tree, treeObjs
 work_dir = os.getcwd()[:-6]
 print "Working directory: %s" % work_dir
 
-minecraft_save_dir = work_dir+"worlds"
+minecraft_save_dir = work_dir+"/../worlds"
 
 # minecraft game mode: 'game' = Survival mode, 'map' = Creative mode
+## esto me gustaría que acabara no haciendo falta
 map_type = 'map'
-
-# files
-folder = "../img/"
-file_elevation = "elevation_small.tif"
-file_features = "feature_small.tif"
+game_mode = 1
 
 
 # Set these values to only render part of the map, either by
 # offsetting the origin or displaying a smaller size.
+## no sé si esto nos hará falta
 x_offset = 0
 truncate_size = 0
 
-elevation_min = 255
-elevation_max = 0
 
 # Fun fact: the Fort Washington map is 1.27 miles high and 818 pixels
 # high, so our scale is 2.49 meters per pixel. Range on the map is
 # from 0 feet (sea level) to 180 feet, or 60 blocks.
+## esto creo que acaberemos no necesitándolo
 voxel_min = 0
 voxel_max = 60.0
 
+## no sé qué es esto
 y_min = 12
 
-print(sys.argv)
-
-#### main ####
-if map_type == 'game':
-    game_mode = 0 # Survival
-if map_type == 'map':
-    game_mode = 1 # Creative
-
-if map_type not in ('map', 'game'):
-    print "Usage: %s [game|map] (map prefix)" % sys.argv[0]
-    print " 'game' turns the map into a playable survival game."
-    print " 'map' just renders the map."
-    sys.exit()
-
-
+## sospecho que podremos acabar simplificando block_rgb_lookup, rgb_values y block_id_lookup en una única matriz
+## e incluso podría estar mejor como un fichero externo que modificar en cada proyecto de generación sin tener que tocar el código del script
+# minecraft hardwired conventions
 block_rgb_lookup = {
     "Grass" : (35, 217, 72),
-    "Grass" : (158, 134, 26),
     "Dirt" : (136, 40, 84),
     "Cobblestone" : (220, 87, 237),
     "StoneBricks" : (255, 255, 255),
@@ -127,16 +145,88 @@ def random_material():
         choice = choice.ID
     return choice
 
-print "Loading bitmaps"
-data = dict(elevation=[], features=[])
-for t in 'elevation', 'features':
-    if t == 'elevation':
-        filename = folder + file_elevation
-    if t == 'features':
-        filename = folder + file_features
-    if not os.path.exists(filename):
-        print "Could not load image file %s!" % filename
-        sys.exit()
+
+# main #
+
+print(sys.argv)
+
+## tenemos que añadir otra opción más de escalado (u opcionalmente dos, de escalado horizontal y de vertical)
+if len(sys.argv) < 3:
+    print """
+        [ ERROR ] you must supply two arguments: DEM_map features_map
+       """
+    Usage()
+
+file_elevation = sys.argv[1]
+file_features = sys.argv[2]
+
+print "Loading maps"
+DEM_ds = gdal.Open( file_elevation, GA_ReadOnly )
+if DEM_ds is None:
+    print 'Unable to open %s' % file_elevation
+    sys.exit(1)
+
+FEATURES_ds = gdal.Open (file_features. GA_ReadOnly)
+if FEATURES_ds is None:
+    print "Unable to open %s" % file_features
+    sys.exit(1)
+
+# map sizes:
+DEM_heigth = DEM_ds.RasterYSize
+DEM_width = DEM_ds.RasterXSize
+print("DEM size = %s wdith x %s height  " % (DEM_width, DEM_heigth))
+
+FEATURES_heigth = FEATURES_ds.RasterYSize
+FEATURES_width = FEATURES_ds.RasterXSize
+print("Features map size = %s wdith x %s height  " % (FEATURES_width, FEATURES_heigth))
+
+# maps sizes control:
+if  DEM_width != FEATURES_width:
+    print "Files widths are different"
+    sys.exit(1)
+if  DEM_heigth != FEATURES_heigth:
+    print "Files heigths are different"
+    sys.exit(1)
+
+# DEM altitudes are expected to be coded in just 1 band
+try:
+    DEMband = DEM_ds.GetRasterBand(band_num)
+except RuntimeError, e:
+    print 'No band %i found for altitude' % band_num
+    print e
+    sys.exit(1)
+
+## print geo data from DEM elevation file, just for fun
+print 'Driver: ', DEM_ds.GetDriver().ShortName,'/', \
+      DEM_ds.GetDriver().LongName
+print 'Size is ',DEM_ds.RasterXSize,'x',DEM_ds.RasterYSize, \
+      'x',DEM_ds.RasterCount
+print 'Projection is ',DEM_ds.GetProjection()
+geotransform = DEM_ds.GetGeoTransform()
+if not geotransform is None:
+    print 'Origin = (',geotransform[0], ',',geotransform[3],')'
+    DEM_XpixelSize = geotransform[1]
+    DEM_YpixelSize = geotransform[5]
+    print 'Pixel Size = (',DEM_XpixelSize], ',',DEM_YpixelSize,')'
+
+
+
+## print band geo data from DEM elevation file, expected to find a 1 altitude band
+## this is not needed but a help while writing the script
+
+print "[ NO DATA VALUE ] = ", DEMband.GetNoDataValue()
+altitude_min = DEMband.GetMinimum()
+altitude_max = DEMband.GetMaximum()
+altitude_scale = DEMband.GetScale()
+print "[ MIN ] = ", altitude_min
+print "[ MAX ] = ", altitude_max
+print "[ SCALE ] = ", altitude_scale
+# hopefully UNIT TYPE will be meters, so will assume 1 meter -> 1 cube
+print "[ UNIT TYPE ] = ", DEMband.GetUnitType()
+
+
+### A PARTIR DE AQUÓ TODA ESTA PARTE ESTÁ POR REESCRIBIR PARA TIRAR DE LAS VARIABLES ALIMENTADAS CON GDAL ####
+
     img = Image.open(filename, "r")
     width, height = img.size
     for i in range(max(width, truncate_size)):
@@ -374,38 +464,5 @@ for x, row in enumerate(elevation):
                         world.setBlockAt(x, elev+1,z, plant)
                     break
 
-# I can't quite get this to work. The chest shows up but the supplies
-# don't.
-#
-# # Add a chest beneath spawn point with some survival supplies.
-# chest_x, chest_y, chest_z = list(peak)
-# chest_y -= 2
-
-# chunk = world.getChunk(chest_x/16, chest_z/16)
-
-# world.setBlockAt(chest_x,chest_y,chest_z, m.Chest.ID)
-# tiles = nbt.TAG_List()
-# chunk.root_tag[TileEntities] = tiles
-# chestTag = nbt.TAG_Compound()
-# chestTag['id'] = nbt.TAG_String(str(m.Chest.ID-1)) # "Chest"
-# chestTag['x'] = nbt.TAG_Int(chest_x)
-# chestTag['y'] = nbt.TAG_Int(chest_y)
-# chestTag['z'] = nbt.TAG_Int(chest_z)
-# tiles.append(chestTag)
-
-# print "Chest at %s,%s,%s" % (chest_x, chest_y, chest_z)
-# inventory = []
-# starting_chest_contents = [(m.SugarCane, 6), (m.Pumpkin, 1),
-#                            (m.Watermelon, 1), (m.Cactus, 3)]
-# for i, (block, quantity) in enumerate(starting_chest_contents):
-#     slot = i
-#     print "%s %s in slot %s" % (quantity, block, slot)
-#     itemTag = nbt.TAG_Compound()
-#     itemTag["Slot"] = nbt.TAG_Byte(slot)
-#     itemTag["Count"] = nbt.TAG_Byte(quantity)
-#     itemTag["id"] = nbt.TAG_Short(block.ID)
-#     inventory.append(itemTag)
-# print "%s items in chest." % nbt.TAG_List(inventory)
-# chestTag["Items"] = nbt.TAG_List(inventory)
 
 setspawnandsave(world, peak)
