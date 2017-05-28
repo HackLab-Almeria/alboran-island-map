@@ -201,7 +201,7 @@ for i in range(HEIGHT):
         actual_y = y + y_min
 
         # Don't fill up the whole map from bedrock, just draw a shell.
-        start_at = min(1, actual_y-depth-10) #he cambiado max por min
+        start_at = max(1, actual_y-depth-10)
 
         # If we were going to optimize this code, this is where the
         # optimization would go. Lay down the stone in big slabs and
