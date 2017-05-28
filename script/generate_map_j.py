@@ -31,12 +31,12 @@ rgb_values = block_rgb_lookup.values()
 # blockID, blockData, depth.
 block_id_lookup = {
     35 : (m.Grass.ID, None, 2),
-    86 : (m.WaterActive.ID, 0, 1), # blockData 1 == grass can't spread
+    86 : (m.WaterActive.ID, 0, 2), # blockData 1 == grass can't spread
     136 : (m.Grass.ID, None, 2),
     220 : (m.Cobblestone.ID, None, 1),
     255 : (m.StoneBricks.ID, None, 3),
     151 : (m.WoodPlanks.ID, None, 2),
-    0  : (m.Dirt.ID, 1, 1),
+    0  : (m.Dirt.ID, 1, 2),
     193 : (m.Gravel.ID, None, 2),
 #    0   : (m.Water.ID, 0, 2), # blockData 0 == normal state of water
 #    220 : (m.WaterActive.ID, 0, 1),
@@ -190,7 +190,7 @@ max_height = (world.Height-elevation_min)
 
 print "Populating chunks."
 for i in range(HEIGHT):
-    for j in range(WIDTH):
+    for j in range(1, WIDTH):
         block_id = features_r[i][WIDTH-j] #poner otros colores
         try:
             block_id, block_data, depth = block_id_lookup[block_id]
@@ -201,7 +201,7 @@ for i in range(HEIGHT):
         actual_y = y + y_min
 
         # Don't fill up the whole map from bedrock, just draw a shell.
-        start_at = max(1, actual_y-depth-10)
+        start_at = min(1, actual_y-depth-10) #he cambiado max por min
 
         # If we were going to optimize this code, this is where the
         # optimization would go. Lay down the stone in big slabs and
