@@ -15,32 +15,19 @@ def Usage():
     print('$ generate_map.py DEM_map features_map')
     sys.exit(1)
 
-block_rgb_lookup = {
-    "Grass" : (35, 217, 72),
-    "Grass" : (158, 134, 26),
-    "Dirt" : (136, 40, 84),
-    "Cobblestone" : (220, 87, 237),
-    "StoneBricks" : (255, 255, 255),
-    "WoodPlanks" : (151, 110, 84),
-    "Obsidian" : (0, 0, 0),
-    "Gravel" : (193, 60, 151),
-}
-rgb_values = block_rgb_lookup.values()
-
 # R-values from the texture TIFF are converted to blocks of the given
 # blockID, blockData, depth.
 block_id_lookup = {
-    35 : (m.Grass.ID, None, 2),
-    86 : (m.WaterActive.ID, 0, 2), # blockData 1 == grass can't spread
-    136 : (m.Grass.ID, None, 2),
-    220 : (m.Cobblestone.ID, None, 1),
-    255 : (m.StoneBricks.ID, None, 3),
-    151 : (m.WoodPlanks.ID, None, 2),
-    0  : (m.Dirt.ID, 1, 2),
-    193 : (m.Gravel.ID, None, 2),
-#    0   : (m.Water.ID, 0, 2), # blockData 0 == normal state of water
-#    220 : (m.WaterActive.ID, 0, 1),
-#    210 : (m.Water.ID, 0, 1),
+    '35,35,35' : (m.Grass.ID, None, 2),
+    '86,191,208' : (m.Water.ID, 0, 1), # blockData 1 == grass can't spread
+    '136,136,136' : (m.Grass.ID, None, 2),
+    '255,255,255' : (m.Sand.ID, None, 2),
+    '40,25,7' : (m.StoneBricks.ID, None, 2),
+    '10,193,3' : (m.Cobblestone.ID, None, 2),
+    '29,142,94' : (m.Cobblestone.ID, None, 2),
+    '151,151,151' : (m.WoodPlanks.ID, None, 2),
+    '0,0,0'  : (m.Grass.ID, 1, 2),
+    '193,193,193' : (m.Gravel.ID, None, 2)
 }
 
 # Fin definiciones
@@ -188,17 +175,22 @@ world.fillBlocks(tilebox, m.Air, [wall_material])
 
 max_height = (world.Height-elevation_min)
 
+peak = [0, 0, 0]
+
 print "Populating chunks."
 for i in range(HEIGHT):
     for j in range(1, WIDTH):
-        block_id = features_r[i][WIDTH-j] #poner otros colores
+        block_id = '{0},{1},{2}'.format(features_r[i][WIDTH-j], features_g[i][WIDTH-j], features_b[i][WIDTH-j]) #poner otros colores
         try:
             block_id, block_data, depth = block_id_lookup[block_id]
         except KeyError, e:
-            block_id, block_data, depth = block_id_lookup[0]
+            block_id, block_data, depth = block_id_lookup['0,0,0']
 
         y = dem_values[i][WIDTH-j]
         actual_y = y + y_min
+
+        if ((i == HEIGHT/2) and (j == WIDTH/2)):
+            peak = [i, y, j]
 
         # Don't fill up the whole map from bedrock, just draw a shell.
         start_at = max(1, actual_y-depth-10)
@@ -221,5 +213,4 @@ for i in range(HEIGHT):
             if block_data:
                 world.setBlockDataAt(i, elev, j, block_data)
 
-peak = [10, 18, 10]
 setspawnandsave(world, peak)
