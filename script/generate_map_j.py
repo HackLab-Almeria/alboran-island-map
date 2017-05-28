@@ -31,12 +31,12 @@ rgb_values = block_rgb_lookup.values()
 # blockID, blockData, depth.
 block_id_lookup = {
     35 : (m.Grass.ID, None, 2),
-    158 : (m.Dirt.ID, 1, 1), # blockData 1 == grass can't spread
+    86 : (m.WaterActive.ID, 0, 1), # blockData 1 == grass can't spread
     136 : (m.Grass.ID, None, 2),
     220 : (m.Cobblestone.ID, None, 1),
     255 : (m.StoneBricks.ID, None, 3),
     151 : (m.WoodPlanks.ID, None, 2),
-    0  : (m.Obsidian.ID, None, 2),
+    0  : (m.Dirt.ID, 1, 1),
     193 : (m.Gravel.ID, None, 2),
 #    0   : (m.Water.ID, 0, 2), # blockData 0 == normal state of water
 #    220 : (m.WaterActive.ID, 0, 1),
@@ -115,8 +115,7 @@ print('DEM size = {0} wdith x {1} height'.format(mDEM_ds.RasterXSize, mDEM_ds.Ra
 
 #Iteramos
 dem_values = mDEM_ds.GetRasterBand(1).ReadAsArray()
-
-max_alt = mDEM_ds.GetRasterBand(1).GetMaximum()
+max_alt = np.amax(dem_values)
 
 try:
     features_r = FEATURES_ds.GetRasterBand(1).ReadAsArray()
@@ -133,7 +132,7 @@ except RuntimeError, e:
 # Where does the world file go?
 minecraft_save_dir = './'
 y_min = 0
-elevation_min = 1
+elevation_min = 0
 
 i = 0
 worlddir = None
@@ -168,10 +167,10 @@ bedrock_upper_right = [x_extent + extra_space + 1, y_min-1, z_extent + extra_spa
 
 glass_bottom_left = list(bedrock_bottom_left)
 glass_bottom_left[1] += 1
-glass_upper_right = [x_extent + extra_space+1, 255, z_extent + extra_space+1]
+glass_upper_right = [x_extent + extra_space+1, max_alt, z_extent + extra_space+1]
 
 air_bottom_left = (0,y_min,0)
-air_upper_right = [x_extent, 255, z_extent]
+air_upper_right = [x_extent, max_alt, z_extent]
 
 # Glass walls
 wall_material = m.Glass
@@ -182,7 +181,7 @@ world.fillBlocks(tilebox, wall_material)
 
 # Air in the middle.
 bottom_left = (0, 1, 0)
-upper_right = (HEIGHT, 255, WIDTH)
+upper_right = (HEIGHT, max_alt, WIDTH)
 print "Carving out air layer. %r %r" % (bottom_left, upper_right)
 tilebox = box.BoundingBox(bottom_left, upper_right)
 world.fillBlocks(tilebox, m.Air, [wall_material])
@@ -192,14 +191,13 @@ max_height = (world.Height-elevation_min)
 print "Populating chunks."
 for i in range(HEIGHT):
     for j in range(WIDTH):
-        block_id = features_r[i][j] #poner otros colores
+        block_id = features_r[i][WIDTH-j] #poner otros colores
         try:
             block_id, block_data, depth = block_id_lookup[block_id]
-
         except KeyError, e:
             block_id, block_data, depth = block_id_lookup[0]
 
-        y = dem_values[i][j]
+        y = dem_values[i][WIDTH-j]
         actual_y = y + y_min
 
         # Don't fill up the whole map from bedrock, just draw a shell.
@@ -210,7 +208,7 @@ for i in range(HEIGHT):
         # then sprinkle goodies into it.
         stop_at = actual_y-depth
         for elev in range(start_at, stop_at):
-            world.setBlockAt(x,elev,z, block)
+            world.setBlockAt(i,elev,j, m.Stone.ID)
 
         start_at = actual_y - depth
         stop_at = actual_y + 1
@@ -222,7 +220,6 @@ for i in range(HEIGHT):
             world.setBlockAt(i, elev, j, block_id)
             if block_data:
                 world.setBlockDataAt(i, elev, j, block_data)
-        break
 
-peak = [10, 255, 10]
+peak = [10, 18, 10]
 setspawnandsave(world, peak)
