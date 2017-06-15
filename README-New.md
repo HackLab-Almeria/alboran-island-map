@@ -22,6 +22,9 @@ Optionally you would like to use geo tools like:
 	- the gdal CLI tools, http://www.gdal.org
 	- qgis
 
+
+
+
 # World creation workflow
 
  - a
@@ -29,3 +32,7 @@ Optionally you would like to use geo tools like:
  - ...
  - c
 
+
+# Scripts usage
+
+-
