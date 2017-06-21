@@ -36,3 +36,4 @@ Optionally you would like to use geo tools like:
 # Scripts usage
 
 -
+- mcimport/mcimport.sh
