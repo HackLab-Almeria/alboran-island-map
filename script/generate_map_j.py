@@ -80,11 +80,13 @@ if FEATURES_ds is None:
 
 DEM_heigth = DEM_ds.RasterYSize
 DEM_width = DEM_ds.RasterXSize
-print('DEM size = {0} wdith x {1} height'.format(DEM_width, DEM_heigth))
+print('Non scaled DEM size = {0} wdith x {1} height'.format(DEM_width, DEM_heigth))
 
-FEATURES_heigth = FEATURES_ds.RasterYSize
+FEATURES_height = FEATURES_ds.RasterYSize
 FEATURES_width = FEATURES_ds.RasterXSize
-print('Features size = {0} wdith x {1} height'.format(FEATURES_width, FEATURES_heigth))
+print('Features size = {0} wdith x {1} height'.format(FEATURES_width, FEATURES_height))
+
+# To avoid indexes mismatchs between DEM_ds and FEATURES_ds will use only FEATURES_width, FEATURES_height
 
 # DEM altitudes are expected to be coded in just 1 band
 band_num = 1
@@ -98,12 +100,14 @@ except RuntimeError, e:
 geotransform = DEM_ds.GetGeoTransform()
 WIDTH = DEM_ds.RasterXSize * int(abs(geotransform[1]))
 HEIGHT = DEM_ds.RasterYSize * int(abs(geotransform[5]))
-mDEM_ds = gdal.Translate( '', DEM_ds, format="MEM", outputType = gdal.GDT_Int32, width=WIDTH, height=HEIGHT)
-print('DEM size = {0} wdith x {1} height'.format(mDEM_ds.RasterXSize, mDEM_ds.RasterYSize))
+mDEM_ds = gdal.Translate( '', DEM_ds, format="MEM", outputType = gdal.GDT_Int32, width=FEATURES_width, height=FEATURES_height)
+print('Scaled DEM size = {0} wdith x {1} height'.format(mDEM_ds.RasterXSize, mDEM_ds.RasterYSize))
 
-#Iteramos
+# Looking for the maximum altitude:
 dem_values = mDEM_ds.GetRasterBand(1).ReadAsArray()
 max_alt = np.amax(dem_values)
+
+# Should we look for the minimum altitude too, shouldn't we?
 
 try:
     features_r = FEATURES_ds.GetRasterBand(1).ReadAsArray()
@@ -140,12 +144,12 @@ for tag in tags:
 
 print "Creating chunks."
 
-x_extent = HEIGHT
+x_extent = FEATURES_height
 x_min = 0
-x_max = HEIGHT
+x_max = FEATURES_height
 
 z_min = 0
-z_extent = WIDTH
+z_extent = FEATURES_width
 z_max = z_extent
 
 extra_space = 1
@@ -169,7 +173,7 @@ world.fillBlocks(tilebox, wall_material)
 
 # Air in the middle.
 bottom_left = (0, 1, 0)
-upper_right = (HEIGHT, max_alt, WIDTH)
+upper_right = (FEATURES_height, max_alt, FEATURES_width)
 print "Carving out air layer. %r %r" % (bottom_left, upper_right)
 tilebox = box.BoundingBox(bottom_left, upper_right)
 world.fillBlocks(tilebox, m.Air, [wall_material])
@@ -179,18 +183,18 @@ max_height = (world.Height-elevation_min)
 peak = [0, 0, 0]
 
 print "Populating chunks."
-for i in range(HEIGHT):
-    for j in range(1, WIDTH):
-        block_id = '{0},{1},{2}'.format(features_r[i][WIDTH-j], features_g[i][WIDTH-j], features_b[i][WIDTH-j]) #poner otros colores
+for i in range(FEATURES_height):
+    for j in range(1, FEATURES_width):
+        block_id = '{0},{1},{2}'.format(features_r[i][FEATURES_width-j], features_g[i][FEATURES_width-j], features_b[i][FEATURES_width-j]) #poner otros colores
         try:
             block_id, block_data, depth = block_id_lookup[block_id]
         except KeyError, e:
             block_id, block_data, depth = block_id_lookup['0,0,0']
 
-        y = dem_values[i][WIDTH-j]
+        y = dem_values[i][FEATURES_width-j]
         actual_y = y + y_min
 
-        if ((i == HEIGHT/2) and (j == WIDTH/2)):
+        if ((i == FEATURES_height/2) and (j == FEATURES_width/2)):
             peak = [i, y, j]
 
         # Don't fill up the whole map from bedrock, just draw a shell.
