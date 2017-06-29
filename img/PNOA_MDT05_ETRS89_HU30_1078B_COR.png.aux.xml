@@ -1,10 +1,23 @@
 <PAMDataset>
   <SRS>LOCAL_CS["unnamed",UNIT["unknown",1]]</SRS>
   <GeoTransform>  4.9599750000000000e+05,  1.0000000000000000e+00,  0.0000000000000000e+00,  3.9780025000000000e+06,  0.0000000000000000e+00, -1.0000000000000000e+00</GeoTransform>
-  <Metadata>
-    <MDI key="AREA_OR_POINT">Point</MDI>
-  </Metadata>
   <PAMRasterBand band="1">
     <NoDataValue>-9.99000000000000E+02</NoDataValue>
+    <Histograms>
+      <HistItem>
+        <HistMin>-0.4736842105263158</HistMin>
+        <HistMax>18.47368421052632</HistMax>
+        <BucketCount>19</BucketCount>
+        <IncludeOutOfRange>0</IncludeOutOfRange>
+        <Approximate>1</Approximate>
+        <HistCounts>81125|115|95|55|45|85|85|90|105|215|245|265|190|155|100|25|10|15|10</HistCounts>
+      </HistItem>
+    </Histograms>
+    <Metadata>
+      <MDI key="STATISTICS_MAXIMUM">18</MDI>
+      <MDI key="STATISTICS_MEAN">0.20498614958449</MDI>
+      <MDI key="STATISTICS_MINIMUM">0</MDI>
+      <MDI key="STATISTICS_STDDEV">1.4618317736931</MDI>
+    </Metadata>
   </PAMRasterBand>
 </PAMDataset>

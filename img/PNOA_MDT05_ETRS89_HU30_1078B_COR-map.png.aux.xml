@@ -1,0 +1,10 @@
+<PAMDataset>
+  <SRS>LOCAL_CS["unnamed",UNIT["unknown",1]]</SRS>
+  <GeoTransform>  4.9599750000000000e+05,  1.0000000000000000e+00,  0.0000000000000000e+00,  3.9780025000000000e+06,  0.0000000000000000e+00, -1.0000000000000000e+00</GeoTransform>
+  <Metadata>
+    <MDI key="AREA_OR_POINT">Point</MDI>
+  </Metadata>
+  <PAMRasterBand band="1">
+    <NoDataValue>-9.99000000000000E+02</NoDataValue>
+  </PAMRasterBand>
+</PAMDataset>
